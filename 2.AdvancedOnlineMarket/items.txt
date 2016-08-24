@@ -1,0 +1,9 @@
+This is a Book#1#The greatest book in the world.#5.00#5#1
+Not as good of a Book#1#Somewhat disappointing ending.#2.00#20#2
+To Kill an Author#1#I don`t like the premise of the book.#7.50#7#2
+Music Thing Album 1#2#The greatest tunes of all time!#3.99#18#1
+How much Rock could a Rock Jock Rock?#2#I like song number 3 the best.#8.79#2#2
+The Greatest Album by Kanye East#2#Doing his Kanye Best.#4.99#34#1
+Hot Sports Car#3#Drives fast, looks cool, best car EVER!#$2000.01#3#1
+3000 Maserati#3#Something something Italian sports car.#15000.00#6#2
+Beat-Up Soccer Mom Van#3#Cleaned up the throwup in the backseat!#100000.00#1#1

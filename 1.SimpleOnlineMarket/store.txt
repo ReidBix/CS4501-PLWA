@@ -1,0 +1,4 @@
+Item&picture.jpg&cost
+Thing1&picture2.jpg&$5.00
+Donut&picture3.jpg&$1.25
+Lamp&lamp.jpg&$10.00

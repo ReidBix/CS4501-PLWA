@@ -1,0 +1,475 @@
+<!doctype html>
+<html>
+<style>
+table {
+		border-collapse: collapse;
+	}
+</style>
+
+<head>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+
+<script type="text/javascript">
+var lastMenu;
+var lastTitle;
+var categories = []; 
+
+window.onload = function() {
+	if (sessionStorage.getItem('categories') === null) {
+		console.log("First");
+		sessionStorage.setItem('categories', JSON.stringify(categories));
+	} else {
+		console.log("Second");
+		categories = JSON.parse(sessionStorage.getItem("categories"));;
+	}
+  	getData();
+  	document.getElementById('deleteButton').style.display='none';
+  	document.getElementById('addButton').style.display='none';
+  	document.getElementById('sortButton').style.display='none';
+  	document.getElementById('moveButton').style.display='none';
+  	document.getElementById('select').style.display='none';
+};
+
+function getData() {
+	openDatabase();
+	var httpRequest = new XMLHttpRequest();
+
+	if (httpRequest.overrideMimeType) {
+		httpRequest.overrideMimeType("text/xml");
+	}
+
+	httpRequest.open("GET", "cookbook.xml", true);
+	httpRequest.onreadystatechange = function(data)
+	{
+		if (httpRequest.readyState == 4 && httpRequest.status == 200) {
+			var root = httpRequest.responseXML.documentElement;
+			var categories = root.getElementsByTagName('categories');
+			for (var i = 0; i < categories.length; i++) {
+				//Get all menus
+				var menus = categories[i].childNodes;
+				for (var j = 0; j < menus.length; j++){
+					if (menus[j].nodeType == Node.ELEMENT_NODE) {
+        				//Get individual menus
+        				var menu = menus[j];
+        				var recipes = menus[j].getElementsByTagName("recipe");
+        				for (var k = 0; k < recipes.length; k++){
+        					//Get individual recipes
+        					var title = recipes[k].getElementsByTagName("title")[0].childNodes[0].nodeValue.trim();
+        					var ingredients = recipes[k].getElementsByTagName("ingredients")[0].childNodes[0].nodeValue.trim();
+        					var directions = recipes[k].getElementsByTagName("directions")[0].childNodes[0].nodeValue.trim();
+        					var rating = recipes[k].getElementsByTagName("rating")[0].childNodes[0].nodeValue.trim();
+        					var data = {
+        						title : title,
+        						ingredients : ingredients,
+        						directions : directions,
+        						rating : rating,
+        						menu : menu.nodeName.trim()
+        					};
+					        $(document).ready(function () {
+	        					$.ajax({
+				                    url:"setCookbook.php", 
+				                    type:"POST", 
+				                    data: data, 
+				                    success: function(response){ 
+										//alert(JSON.stringify(response));
+				                    }, 
+				                    error: function(err){ 
+				                        alert(JSON.stringify(err)); 
+				                    } 
+				                })   
+        					});
+        				}
+    				}
+				}	
+			}
+
+		}
+	};
+	httpRequest.setRequestHeader('Content-Type', 'text/xml');
+	httpRequest.send();
+	alert("Loaded");
+}
+
+function openDatabase() {
+	$(document).ready(function () {
+		$.ajax({
+			url: 'getCookbook.php',
+			success: function(response){
+				//alert(JSON.stringify(response));
+			},
+			error: function(err){
+				alert(JSON.stringify(err));
+			}
+		})
+	});
+}
+
+function openCookbook(){
+	if (categories.length == 0){
+		$(document).ready(function () {
+		$.ajax({
+			url: 'getCategories.php',
+			success: function(response){
+				//alert(JSON.stringify(response));
+			},
+			error: function(err){
+				alert(JSON.stringify(err));
+			}
+		}).done(function(data) {
+			var menus = JSON.parse(data);
+			var table = $(".table-fill");
+			$("#thetable tr").remove();
+			table.find('thead').append("<tr><th  class=\"text-left\" align=\"center\">Category</th></tr>");
+			var select = document.getElementById("select2");
+		    for(i = select.options.length-1; i >= 0; i--){
+		        select.remove(i);
+		    }
+			menus.forEach(function(entry) {
+    			table.append("<tr><td class=\"text-left\" id=entry onclick=\"openCategory(this.innerHTML)\" align=\"center\">" + entry + "</td></tr>");
+    			var option = document.createElement("option");
+				option.text = entry;
+				select.add(option);
+				categories.push(entry);
+			});
+		sessionStorage.setItem('categories', JSON.stringify(categories));
+		})
+	});
+	} else {
+		var table = $(".table-fill");
+		$("#thetable tr").remove();
+		table.find('thead').append("<tr><th  class=\"text-left\" align=\"center\">Category</th></tr>");
+		var select = document.getElementById("select2");
+	    for(i = select.options.length-1; i >= 0; i--){
+	        select.remove(i);
+	    }
+		categories.forEach(function(entry) {
+   			table.append("<tr><td  class=\"text-left\" id=entry onclick=\"openCategory(this.innerHTML)\" align=\"center\">" + entry + "</td></tr>");
+    		var option = document.createElement("option");
+			option.text = entry;
+			select.add(option);
+		});
+	}
+	var openButton = document.getElementById("openButton");
+    openButton.setAttribute("onClick","javascript: openCookbook();");
+    openButton.innerHTML = "<button class=\"buttonCSS\">Show Cookbook</button>";
+	document.getElementById('deleteButton').style.display='none';
+	document.getElementById('addButton').style.display='none';
+	document.getElementById('sortButton').style.display='none';
+	document.getElementById('moveButton').style.display='none';
+	document.getElementById('select').style.display='none';
+}
+
+function openCategory(cellClicked){
+    var data = {
+        menu : cellClicked
+    };
+    $(document).ready(function () {
+		$.ajax({
+			url: 'getRecipes.php',
+			type:"POST", 
+			data: data,
+			success: function(response){
+				//alert(JSON.stringify(response));
+			},
+			error: function(err){
+				alert(JSON.stringify(err));
+			}
+		}).done(function(data) {
+			lastMenu = cellClicked;
+			//Change top button
+			var openButton = document.getElementById("openButton");
+		    openButton.setAttribute("onClick","javascript: openCookbook();");
+		    openButton.innerHTML = "<button class=\"buttonCSS\">Return to Cookbook</button>";
+
+		    //Show buttons
+			document.getElementById('deleteButton').style.display='inline';
+		  	document.getElementById('addButton').style.display='inline';
+		  	document.getElementById('sortButton').style.display='inline';
+		  	document.getElementById('moveButton').style.display='inline';
+		  	document.getElementById('select').style.display='inline';
+
+		  	var addButton = document.getElementById("aButton");
+		    addButton.setAttribute("onClick","javascript: addRecipe();");
+		    addButton.innerHTML = "<button class=\"buttonCSS\">Add</button>";
+
+			var sButton = document.getElementById("sButton");
+		    sButton.setAttribute("onClick","javascript: sortRecipe();");
+		    sButton.innerHTML = "<button class=\"buttonCSS\">Sort</button>";
+
+		    //Update Table
+			var table = $(".table-fill");
+			$("#thetable tr").remove();
+			table.find('thead').append("<tr><th  class=\"text-left\" align=\"center\"></th><th  class=\"text-left\" align=\"center\">Title</th><th  class=\"text-left\" align=\"center\">Rating</th></tr>");
+			var recipes = JSON.parse(data);
+			var i = 0;
+			recipes.forEach(function(entry) {
+				var title = entry[0];
+				var ingredients = entry[1];
+				var directions = entry[2];
+				var rating = entry[3];
+				table.append("<tr><td align=\"center\"><input id=i type=\"checkbox\"></input></td><td  class=\"text-left\" onclick=\"openRecipe(this.innerHTML)\" align=\"center\">" + title + "</td><td  class=\"text-left\" align=\"center\">" + rating + "</td></tr>");
+				i++;
+			});
+		})
+	});
+    
+
+}
+
+function openRecipe(cellClicked){
+	var data = {
+        title : cellClicked
+    };
+    $(document).ready(function () {
+		$.ajax({
+			url: 'getRecipe.php',
+			type:"POST", 
+			data: data,
+			success: function(response){
+				//alert(JSON.stringify(response));
+			},
+			error: function(err){
+				alert(JSON.stringify(err));
+			}
+		}).done(function(data) {
+		    //Show buttons
+			document.getElementById('deleteButton').style.display='none';
+		  	document.getElementById('addButton').style.display='inline';
+		  	document.getElementById('sortButton').style.display='inline';
+		  	document.getElementById('moveButton').style.display='none';
+		  	document.getElementById('select').style.display='none';
+
+		  	var addButton = document.getElementById("aButton");
+		    addButton.setAttribute("onClick","javascript: addIngredient();");
+		    addButton.innerHTML = "<button class=\"buttonCSS\">Add Ingredient</button>";
+
+			var sButton = document.getElementById("sButton");
+		    sButton.setAttribute("onClick","javascript: saveRecipe();");
+		    sButton.innerHTML = "<button class=\"buttonCSS\">Save</button>";
+
+		    //Update Table
+			var table = $(".table-fill");
+			$("#thetable tr").remove();
+
+			var recipe = JSON.parse(data);
+			var title = recipe[0];
+			var ingredients = recipe[1];
+			var directions = recipe[2];
+			var rating = recipe[3];
+			var menu = recipe[4]
+			var ingredientList = ingredients.split("#");
+			lastMenu = menu;
+			lastTitle = title;
+
+			//Change top button
+			var openButton = document.getElementById("openButton");
+		    openButton.innerHTML = "<button class=\"buttonCSS\">Return to Menu</button>";
+			openButton.setAttribute("onClick","javascript: returnCategory();");
+			
+			table.append("<tr><td align=\"center\">Category</td><td align=\"center\">" + menu + "</td></tr>");
+			table.append("<tr class=\"tit\"><td align=\"center\">Title</td><td><input type=\"text\" value=\"" + title + "\"></td></tr>");
+			table.append("<tr class=\"dir\"><td align=\"center\">Directions</td><td><input type=\"text\" value=\"" + directions + "\"></td></tr>");
+			table.append("<tr class=\"rat\"><td align=\"center\">Rating</td><td><input type=\"text\" value=\"" + rating + "\"></td></tr>");
+			ingredientList.forEach(function(entry) {
+				table.append("<tr class=\"ing\"><td align=\"center\">Ingredient</td><td><input type=\"text\" value=\"" + entry + "\"></td></tr>");
+			});
+		})
+	});
+}
+
+function returnCategory(){
+	openCategory(lastMenu);
+}
+
+function deleteRecipe(){
+	console.log("DELETE RECIPE");
+	var array = [];
+	$('#thetable').find('tr').each(function () {
+        var row = $(this);
+        if (row.find('input[type="checkbox"]').is(':checked')){
+        	console.log(row.children().eq(1).html());
+        	var item = row.children().eq(1).html();
+        	array.push(item);
+        	row.remove();
+        }
+    });
+    console.log(array);
+	var jsonString = JSON.stringify(array);
+    $.ajax({
+	    url: "deleteRecipe.php",
+	    type: 'POST',
+        data: {data : jsonString}, 
+	   	success: function(response){
+			//alert(JSON.stringify(response));
+		},
+		error: function(err){
+			alert(JSON.stringify(err));
+		}
+	})
+}
+
+function addRecipe(){
+	console.log("ADD RECIPE");
+	document.getElementById('deleteButton').style.display='none';
+	document.getElementById('addButton').style.display='inline';
+	document.getElementById('sortButton').style.display='inline';
+	document.getElementById('moveButton').style.display='none';
+	document.getElementById('select').style.display='none';
+
+	var addButton = document.getElementById("aButton");
+	addButton.setAttribute("onClick","javascript: addIngredient();");
+	addButton.innerHTML = "<button class=\"buttonCSS\">Add Ingredient</button>";
+
+	var sButton = document.getElementById("sButton");
+	sButton.setAttribute("onClick","javascript: saveRecipe();");
+	sButton.innerHTML = "<button class=\"buttonCSS\">Save</button>";
+
+	//Update Table
+	var table = $(".table-fill");
+	$("#thetable tr").remove();
+	lastTitle = "";
+	//Change top button
+	var openButton = document.getElementById("openButton");
+	openButton.innerHTML = "<button class=\"buttonCSS\">Return to Menu</button>";
+	openButton.setAttribute("onClick","javascript: returnCategory();");
+			
+	table.append("<tr><td align=\"center\">Category</td><td align=\"center\">" + lastMenu + "</td></tr>");
+	table.append("<tr class=\"tit\"><td align=\"center\">Title</td><td><input type=\"text\" value=\"\"></td></tr>");
+	table.append("<tr class=\"dir\"><td align=\"center\">Directions</td><td><input type=\"text\" value=\"\"></td></tr>");
+	table.append("<tr class=\"rat\"><td align=\"center\">Rating</td><td><input type=\"text\" value=\"\"></td></tr>");
+	table.append("<tr class=\"ing\"><td align=\"center\">Ingredient</td><td><input type=\"text\" value=\"\"></td></tr>");
+}
+
+function sortRecipe(){
+	console.log("SORT RECIPE");
+	var rows = $('#thetable tbody  tr').get();
+  	rows.sort(function(a, b) {
+  		var A = $(a).children('td').eq(2).text();
+  		console.log(A);
+  		var B = $(b).children('td').eq(2).text();
+  		console.log(B);
+	  	if(A < B) {
+    		return 1;
+  		}
+		if(A > B) {
+		    return -1;
+		}
+		return 0;
+	});
+	$.each(rows, function(index, row) {
+		$('#thetable').children('tbody').append(row);
+	});
+}
+
+function moveRecipe(){
+	console.log("MOVE RECIPE");
+
+	var select = document.getElementById( "select2" );
+	var menu = select.options[select.selectedIndex].value;
+
+	if (menu != lastMenu){
+		var array = [];
+		$('#thetable').find('tr').each(function () {
+	        var row = $(this);
+	        if (row.find('input[type="checkbox"]').is(':checked')){
+	        	console.log(row.children().eq(1).html());
+	        	var item = row.children().eq(1).html();
+	        	array.push(item);
+	        	row.remove();
+	        }
+	    });
+	    console.log(array);
+		var jsonString = JSON.stringify(array);
+	    $.ajax({
+		    url: "moveRecipe.php",
+		    type: 'POST',
+	        data: {data : jsonString,
+	        		menu: menu}, 
+		   	success: function(response){
+				//alert(JSON.stringify(response));
+			},
+			error: function(err){
+				alert(JSON.stringify(err));
+			}
+		})
+	} else {
+		//alert("SAME MENU!");
+	}
+}
+
+function addIngredient(){
+	console.log("ADD INGREDIENT");
+	var table = $(".table-fill");
+	table.append("<tr class=\"ing\"><td align=\"center\">Ingredient</td><td><input type=\"text\" value=\"\"></td></tr>");
+}
+
+function saveRecipe(){
+	console.log("SAVE RECIPE");
+	var title = $($( $(".tit").children()[1] ).children()[0]).val();
+	var rating = $($( $(".rat").children()[1] ).children()[0]).val();
+	var directions = $($( $(".dir").children()[1] ).children()[0]).val();
+	var ingredientList = $(".ing");
+	var ingredients = "";
+	ingredientList.each( function() {
+		console.log($($( $(this).children()[1] ).children()[0]).val());
+		var i = $($( $(this).children()[1] ).children()[0]).val();
+		if (i.length > 0){
+			ingredients = ingredients + i + "#";
+		}
+	});
+	ingredients = ingredients.slice(0, -1);
+	console.log(ingredients);
+	var data = {
+		lastTitle: lastTitle,
+        title : title,
+        rating : rating,
+        directions : directions,
+        ingredients : ingredients,
+        menu : lastMenu
+    };
+    console.log(data);
+    $.ajax({
+	    url: "updateRecipe.php",
+	    type: 'POST',
+	    data: data,
+		success: function(response){
+			//alert(JSON.stringify(response));
+		},
+		error: function(err){
+			alert(JSON.stringify(err));
+		}
+	}).done(function(data) {
+		returnCategory();
+	});
+}
+
+
+</script>
+
+</head>
+<body>
+	<center>
+		<h1>The Cookbook</h1>
+		<a href="#" id="openButton" onclick="openCookbook()"><button class="buttonCSS">Show Cookbook</button></a>
+
+		<table class="table-fill" id="thetable" border = "1">
+		<thead> </thead>
+		</table>
+		<div id="deleteButton"><a href="#" id="dButton" onclick="deleteRecipe()"><button class="buttonCSS">Delete</button></a></div>
+		<div id="addButton"><a href="#" id="aButton" onclick="addRecipe()"><button class="buttonCSS">Add</button></a></div>
+		<div id="sortButton"><a href="#" id="sButton" onclick="sortRecipe()"><button class="buttonCSS">Sort</button></a></div>
+
+		<br>
+
+		<div id="moveButton"><a href="#" id="mButton" onclick="moveRecipe()"><button class="buttonCSS">Move</button></a></div>
+		<div id="select"><select class="buttonCSS" id="select2"></div>
+		  
+		</select>
+
+	</center>
+
+</body>
+</html>

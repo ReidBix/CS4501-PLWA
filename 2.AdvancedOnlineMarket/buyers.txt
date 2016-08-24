@@ -1,0 +1,4 @@
+User Name#user#pass#1234 Street, City, State ZIP
+Nathan Yates#nyjets@gmail.com#password#Address 1, Zipcode, Stuff
+Sally Carmichael#cmad321@yahoo.com#password#Apartment Address 2, City, State
+Rox Bimbox#rb@pixofbix.website#pass#1620 Jefferson Park Avenue, Charlottesville, VA 22903

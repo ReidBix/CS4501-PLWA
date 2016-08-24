@@ -1,0 +1,73 @@
+<cookbook>
+    <categories>
+        <Entree_menu>
+                <recipe>
+                    <title> Entree1
+                    </title>
+                    <ingredients> Ing1#Ing2
+                    </ingredients>
+                    <directions> Direction1
+                    </directions>
+                    <rating> 1
+                    </rating>
+                </recipe>
+                <recipe>
+                    <title> Entree2
+                    </title>
+                    <ingredients> Ing1#Ing3
+                    </ingredients>
+                    <directions> Direction2
+                    </directions>
+                    <rating> 3
+                    </rating>
+                </recipe>
+        </Entree_menu>
+
+        <Appetizer_menu>
+            <recipe>
+                <title> Appetizer1
+                </title>
+                <ingredients> Ing5#Ing2
+                </ingredients>
+                <directions> Direction1
+                </directions>
+                <rating> 2
+                </rating>
+            </recipe>
+            <recipe>
+                <title> Appetizer2
+                </title>
+                <ingredients> Ing7#Ing2#Ing1#Ing4
+                </ingredients>
+                <directions> Direction2
+                </directions>
+                <rating> 2
+                </rating>
+            </recipe>
+
+        </Appetizer_menu>
+
+        <Favorite_menu>
+            <recipe>
+                <title> Favorite1
+                </title>
+                <ingredients> Ing1#Ing2#Ing3
+                </ingredients>
+                <directions> Direction4
+                </directions>
+                <rating> 2
+                </rating>
+            </recipe>
+            <recipe>
+                <title> Favorite2
+                </title>
+                <ingredients> Ing1
+                </ingredients>
+                <directions> Direction1
+                </directions>
+                <rating> 1
+                </rating>
+            </recipe>
+        </Favorite_menu>        
+    </categories>
+</cookbook>

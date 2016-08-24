@@ -1,0 +1,5 @@
+User Name#user#pass#0.00
+Reid Bixler#rmb3yz@virginia.edu#password#0.00
+John Smith#jsmith@gmail.com#password#100.00
+Sally Thompson#st123@gmail.com#password#1500.00
+Joe Schmoe#jdawg@yahoo.com#pass#299.00
